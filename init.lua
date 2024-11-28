@@ -62,6 +62,12 @@ local lazySpecs = {
     }
   },
   {
+    'fei6409/log-highlight.nvim',
+    config = function()
+      require('log-highlight').setup {}
+    end,
+  },
+  {
     'nanotee/zoxide.vim'
   },
   -- super janky wip perfect dark modding plugin
@@ -73,11 +79,11 @@ local lazySpecs = {
       "folke/which-key.nvim",
       'nvim-telescope/telescope.nvim',
       {
-        "telescope-live-grep-args.nvim",
+        "nvim-telescope/telescope-live-grep-args.nvim",
         -- This will not install any breaking changes.
         -- For major updates, this must be adjusted manually.
-        branch = "pd-nvim",
-        dev = true,
+        -- branch = "pd-nvim",
+        -- dev = true,
         version = "^1.0.0",
       },
     },
@@ -864,6 +870,7 @@ vim.keymap.set('n', "qq", "<cmd>q<cr>")
 vim.keymap.set("n", "<leader>E", "<cmd>Explore<cr>", { desc = "Explore" })
 vim.keymap.set("n", "<leader>sj", "<cmd>Telescope jumplist<cr>", { desc = "Telescope jumplist" })
 vim.keymap.set("n", "<leader>QQQ", "<cmd>qa!<cr>", { desc = "Quit immediately" })
+vim.keymap.set("n", "<leader><C-a>", "<cmd>Alpha<cr>", { desc = "Alpha" })
 
 vim.cmd("autocmd FileType fugitive nmap <buffer> za =")
 
