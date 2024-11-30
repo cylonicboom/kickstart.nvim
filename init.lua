@@ -75,8 +75,11 @@ local lazySpecs = {
   {
     'pd-nvim',
     dependencies = {
-      'sakhnik/nvim-gdb',
       "folke/which-key.nvim",
+      -- debugger support
+      'mfussenegger/nvim-dap', "julianolf/nvim-dap-lldb", 'folke/neodev.nvim', "rcarriga/nvim-dap-ui",
+      "nvim-neotest/nvim-nio", "rcarriga/cmp-dap", "hrsh7th/nvim-cmp",
+      -- telescope candy
       'nvim-telescope/telescope.nvim',
       {
         "nvim-telescope/telescope-live-grep-args.nvim",
@@ -87,9 +90,86 @@ local lazySpecs = {
         version = "^1.0.0",
       },
     },
-    config = true,
+    config = function()
+      local pd = require 'pd_nvim'
+      pd.setup()
+
+      local cfg = {
+        configurations = {
+          -- C lang configurations
+          c = {
+            {
+              name = "Debug Perfect Dark (neovim)",
+              type = "lldb",
+              request = "launch",
+              cwd = "${workspaceFolder}",
+              program = function()
+                return "build/pd.arm64"
+              end,
+            },
+          },
+        },
+      }
+
+      require("dap-lldb").setup(cfg)
+
+      local dapui = nil
+
+      local ensure_dapui = function()
+        if dapui == nil then
+          dapui = require 'dapui'
+          dapui.setup()
+        end
+      end
+
+      local dap = require 'dap'
+
+      vim.keymap.set('n', '<leader>db', function() dap.toggle_breakpoint() end,
+        { desc = '[D]ebug [B]reakpoint' })
+      vim.keymap.set('n', '<leader>do', function()
+          ensure_dapui()
+          dapui.toggle()
+        end,
+        { desc = '[D]ap UI' })
+      vim.keymap.set('n', '<leader>dc', function() dap.continue() end,
+        { desc = '[D]ebug Continue' })
+      vim.keymap.set('n', '<leader>dT', function() dap.terminate() end,
+        { desc = '[D]ebug Terminate' })
+      require 'which-key'.add {
+        { "<leader>d", icon = "🔭🦝", group = "debug" },
+      }
+    end
+    ,
     dev = true
   },
+  -- {
+  --   "rcarriga/nvim-dap-ui",
+  --   dependencies = { "mfussenegger/nvim-dap", "nvim-neotest/nvim-nio", "folke/neodev.nvim", "julianolf/nvim-dap-lldb" },
+  --   config = function()
+  --     require("neodev").setup({
+  --       library = { plugins = { "nvim-dap-ui" }, types = true },
+  --     })
+  --     require 'dapui'.setup()
+  --     local cfg = {
+  --       configurations = {
+  --         -- C lang configurations
+  --         c = {
+  --           {
+  --             name = "Launch debugger",
+  --             type = "lldb",
+  --             request = "launch",
+  --             cwd = "${workspaceFolder}",
+  --             program = function()
+  --               return "build/pd.arm64"
+  --             end,
+  --           },
+  --         },
+  --       },
+  --     }
+  --
+  --     require("dap-lldb").setup(cfg)
+  --   end
+  -- },
   -- kind of okay orgmode
   -- maybe just install doom-emacs and do :!emacs -nw?
   -- if I really needed that?
@@ -146,18 +226,14 @@ local lazySpecs = {
   {
     'tpope/vim-fugitive',
     config = function()
-      local wk = require 'which-key'
-      wk.register(
-        {
-          g = {
-            name = "git",
-            A = { name = "Git Add" },
-            D = { name = "Git Diff" },
-            P = { name = "Git Push" },
-            F = { name = "Git Fetch" }
-          }
-        },
-        { prefix = "<leader>" })
+      require 'which-key'.add
+      {
+        { "<leader>g",  group = "git" },
+        { "<leader>gA", group = "Git Add" },
+        { "<leader>gD", group = "Git Diff" },
+        { "<leader>gF", group = "Git Fetch" },
+        { "<leader>gP", group = "Git Push" },
+      }
       vim.keymap.set('n', '<leader>gg', '<cmd>G<cr>', { desc = "fuGitive status" })
       vim.keymap.set('n', '<leader>G', ':G ', { desc = "run git command" })
       vim.keymap.set('n', '<leader>gF', ':G fetch <cr>', { desc = '[G]it [F]etch' })
@@ -220,7 +296,7 @@ local lazySpecs = {
   },
 
   -- Useful plugin to show you pending keybinds.
-  { 'folke/which-key.nvim', opts = {} },
+  { 'folke/which-key.nvim', opts = {},                                       dependencies = { 'echasnovski/mini.nvim' } },
   {
     'xiyaowong/transparent.nvim',
     config = function()
@@ -258,14 +334,6 @@ local lazySpecs = {
       end,
     },
   },
-  -- {
-  --   -- Theme inspired by Atom
-  --   "rebelot/kanagawa.nvim",
-  --   priority = 1000,
-  --   config = function()
-  --     vim.cmd.colorscheme 'kanagawa'
-  --   end,
-  -- },
 
   {
     'akinsho/toggleterm.nvim',
@@ -843,6 +911,7 @@ cmp.setup {
     { name = "copilot" },
     { name = 'nvim_lsp' },
     { name = 'luasnip' },
+    { name = "dap" }
   },
 }
 
