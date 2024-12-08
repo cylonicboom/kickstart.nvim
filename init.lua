@@ -93,6 +93,7 @@ local lazySpecs = {
     config = function()
       local pd = require 'pd_nvim'
       pd.setup()
+      pd.setup { pd_path = "~/src/pd/fgspd" }
 
       local cfg = {
         configurations = {
