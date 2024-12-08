@@ -588,7 +588,7 @@ local lazySpecs = {
   -- require 'kickstart.plugins.debug',
   {
     "CopilotC-Nvim/CopilotChat.nvim",
-    branch = "canary",
+    branch = "main",
     config = true,
     dependencies = {
       {
