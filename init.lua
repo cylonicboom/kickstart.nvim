@@ -123,6 +123,7 @@ local lazySpecs = {
 
       require("dap-lldb").setup(cfg)
 
+      -- HACK: maybe I should use verylazy
       local dapui = nil
 
       local ensure_dapui = function()
@@ -138,13 +139,28 @@ local lazySpecs = {
         { desc = '[D]ebug [B]reakpoint' })
       vim.keymap.set('n', '<leader>do', function()
           ensure_dapui()
-          dapui.toggle()
+          if dapui then dapui.toggle() end
         end,
         { desc = '[D]ap UI' })
       vim.keymap.set('n', '<leader>dc', function() dap.continue() end,
         { desc = '[D]ebug Continue' })
       vim.keymap.set('n', '<leader>dT', function() dap.terminate() end,
         { desc = '[D]ebug Terminate' })
+      -- debug pause: attempt to sigint all known pd instances
+      vim.keymap.set('n', '<leader>dp', function()
+        vim.fn.system('killall -s SIGINT pd.x86_64')
+        vim.fn.system('killall -s SIGINT pd.arm64')
+        vim.fn.system('killall -s SIGINT pd.exe')
+      end, { desc = '[D]ebug [P]ause' })
+      -- debug step over
+      vim.keymap.set('n', '<leader>ds', function() dap.step_over() end,
+        { desc = '[D]ebug [S]tep Over' })
+      -- debug step into
+      vim.keymap.set('n', '<leader>di', function() dap.step_into() end,
+        { desc = '[D]ebug [I]nto' })
+      -- debug step out (gdb finish)
+      vim.keymap.set('n', '<leader>df', function() dap.step_out() end,
+        { desc = '[D]ebug [F]out' })
       require 'which-key'.add {
         { "<leader>d", icon = "🔭🦝", group = "debug" },
       }
@@ -152,34 +168,6 @@ local lazySpecs = {
     ,
     dev = true
   },
-  -- {
-  --   "rcarriga/nvim-dap-ui",
-  --   dependencies = { "mfussenegger/nvim-dap", "nvim-neotest/nvim-nio", "folke/neodev.nvim", "julianolf/nvim-dap-lldb" },
-  --   config = function()
-  --     require("neodev").setup({
-  --       library = { plugins = { "nvim-dap-ui" }, types = true },
-  --     })
-  --     require 'dapui'.setup()
-  --     local cfg = {
-  --       configurations = {
-  --         -- C lang configurations
-  --         c = {
-  --           {
-  --             name = "Launch debugger",
-  --             type = "lldb",
-  --             request = "launch",
-  --             cwd = "${workspaceFolder}",
-  --             program = function()
-  --               return "build/pd.arm64"
-  --             end,
-  --           },
-  --         },
-  --       },
-  --     }
-  --
-  --     require("dap-lldb").setup(cfg)
-  --   end
-  -- },
   -- kind of okay orgmode
   -- maybe just install doom-emacs and do :!emacs -nw?
   -- if I really needed that?
