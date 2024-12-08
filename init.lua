@@ -105,7 +105,16 @@ local lazySpecs = {
               request = "launch",
               cwd = "${workspaceFolder}",
               program = function()
-                return "build/pd.arm64"
+                local arm64_path = "build/pd.arm64"
+                local x86_64_path = "build/pd.x86_64"
+
+                if vim.fn.filereadable(arm64_path) == 1 then
+                  return arm64_path
+                elseif vim.fn.filereadable(x86_64_path) == 1 then
+                  return x86_64_path
+                else
+                  return nil
+                end
               end,
             },
           },
