@@ -95,32 +95,42 @@ local lazySpecs = {
       pd.setup()
       pd.setup { pd_path = "~/src/pd/fgspd" }
 
+      local getpdpath = function()
+        local arm64_path = "build/pd.arm64"
+        local x86_64_path = "build/pd.x86_64"
+        if vim.fn.filereadable(arm64_path) == 1 then
+          return arm64_path
+        elseif vim.fn.filereadable(x86_64_path) == 1 then
+          return x86_64_path
+        else
+          return nil
+        end
+      end
+
       local cfg = {
         configurations = {
           -- C lang configurations
           c = {
             {
-              name = "Debug Perfect Dark (neovim)",
+              name = "Debug Perfect Dark (Friends of Joanna)",
               type = "lldb",
               request = "launch",
               cwd = "${workspaceFolder}",
-              program = function()
-                local arm64_path = "build/pd.arm64"
-                local x86_64_path = "build/pd.x86_64"
-
-                if vim.fn.filereadable(arm64_path) == 1 then
-                  return arm64_path
-                elseif vim.fn.filereadable(x86_64_path) == 1 then
-                  return x86_64_path
-                else
-                  return nil
-                end
-              end,
+              program = getpdpath,
+              args = {
+                '--basedir', vim.fn.expand '~/.local/share/perfectdark-friends-of-joanna/data',
+                '--savedir', vim.fn.expand '~/.local/share/perfectdark-friends-of-joanna/data', },
+            },
+            {
+              name = "Debug Perfect Dark (PC Port)",
+              type = "lldb",
+              request = "launch",
+              cwd = "${workspaceFolder}",
+              program = getpdpath,
             },
           },
         },
       }
-
       require("dap-lldb").setup(cfg)
 
       -- HACK: maybe I should use verylazy
@@ -135,6 +145,7 @@ local lazySpecs = {
 
       local dap = require 'dap'
 
+
       vim.keymap.set('n', '<leader>db', function() dap.toggle_breakpoint() end,
         { desc = '[D]ebug [B]reakpoint' })
       vim.keymap.set('n', '<leader>do', function()
@@ -142,12 +153,15 @@ local lazySpecs = {
           if dapui then dapui.toggle() end
         end,
         { desc = '[D]ap UI' })
-      vim.keymap.set('n', '<leader>dc', function() dap.continue() end,
+      vim.keymap.set('n', '<leader>dc', function()
+          dap.continue()
+        end,
         { desc = '[D]ebug Continue' })
       vim.keymap.set('n', '<leader>dT', function() dap.terminate() end,
         { desc = '[D]ebug Terminate' })
-      -- debug pause: attempt to sigint all known pd instances
+      -- debug
       vim.keymap.set('n', '<leader>dp', function()
+        -- get buffer at cursor
         vim.fn.system('killall -s SIGINT pd.x86_64')
         vim.fn.system('killall -s SIGINT pd.arm64')
         vim.fn.system('killall -s SIGINT pd.exe')
@@ -161,6 +175,15 @@ local lazySpecs = {
       -- debug step out (gdb finish)
       vim.keymap.set('n', '<leader>df', function() dap.step_out() end,
         { desc = '[D]ebug [F]out' })
+      -- debug up
+      vim.keymap.set('n', '<leader>du', function() dap.up() end,
+        { desc = '[D]ebug [U]p' })
+      -- debug down
+      vim.keymap.set('n', '<leader>dd', function() dap.down() end,
+        { desc = '[D]ebug [D]own' })
+      -- debug run to cursor
+      vim.keymap.set('n', '<leader>dr', function() dap.run_to_cursor() end,
+        { desc = '[D]ebug [R]un to cursor' })
       require 'which-key'.add {
         { "<leader>d", icon = "🔭🦝", group = "debug" },
       }
