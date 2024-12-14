@@ -122,7 +122,8 @@ local lazySpecs = {
               program = getpdpath,
               args = {
                 '--basedir', vim.fn.expand '~/.local/share/perfectdark-friends-of-joanna/data',
-                '--savedir', vim.fn.expand '~/.local/share/perfectdark-friends-of-joanna/data', },
+                '--savedir', vim.fn.expand '~/.local/share/perfectdark-friends-of-joanna/data' },
+              stdio = { nil, 'build/pd.log', 'build/pd.error.log' },
             },
             {
               name = "Debug Perfect Dark (PC Port)",
