@@ -161,8 +161,21 @@ local lazySpecs = {
           dap.continue()
         end,
         { desc = '[D]ebug Continue' })
-      vim.keymap.set('n', '<leader>dT', function() dap.terminate() end,
-        { desc = '[D]ebug Terminate' })
+      vim.keymap.set('n', '<leader>dT', function()
+          local function sigterm(process_name)
+            pcall(function()
+              vim.fn.system('killall -9 ' .. process_name)
+            end)
+            pcall(function() vim.fn.system('pkill -SIGTERM -i ' .. process_name) end)
+          end
+          pcall(function()
+            dap.terminate()
+          end)
+          sigterm('pd.x86_64')
+          sigterm('pd.arm64')
+          sigterm('pd.exe')
+        end,
+        { desc = '[D]ebug [T]erminate' })
       -- debug
       vim.keymap.set('n', '<leader>dp', function()
         local function sigint(process_name)
