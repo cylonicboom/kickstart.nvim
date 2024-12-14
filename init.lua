@@ -164,11 +164,16 @@ local lazySpecs = {
         { desc = '[D]ebug Terminate' })
       -- debug
       vim.keymap.set('n', '<leader>dp', function()
-        -- get buffer at cursor
-        vim.fn.system('killall -s SIGINT pd.x86_64')
-        vim.fn.system('killall -s SIGINT pd.arm64')
-        pcall(function() vim.fn.system 'pkill -SIGINT -i pd.arm64' end)
-        vim.fn.system('killall -s SIGINT pd.exe')
+        local function sigint(process_name)
+          pcall(function()
+            vim.fn.system('killall -s SIGINT ' .. process_name)
+          end)
+          pcall(function() vim.fn.system('pkill -SIGINT -i ' .. process_name) end)
+        end
+
+        sigint('pd.x86_64')
+        sigint('pd.arm64')
+        sigint('pd.exe')
       end, { desc = '[D]ebug [P]ause' })
       -- debug step over
       vim.keymap.set('n', '<leader>ds', function() dap.step_over() end,
