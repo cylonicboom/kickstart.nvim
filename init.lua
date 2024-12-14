@@ -92,11 +92,7 @@ local lazySpecs = {
     },
     config = function()
       local pd = require 'pd_nvim'
-      if vim.fn.isdirectory(vim.fn.expand '~/src/pd/fgspd') == 1 then
-        pd.setup { pd_path = "~/src/pd/fgspd" }
-      else
-        pd.setup()
-      end
+      pd.setup { pd = { { pd_path = "~/src/pd/fgspd", rom_id = "ntsc-final" }, { pd_path = os.getenv("PD"), rom_id = "ntsc-final" } } }
 
       local getpdpath = function()
         local arm64_path = "build/pd.arm64"
