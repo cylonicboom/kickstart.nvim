@@ -92,8 +92,11 @@ local lazySpecs = {
     },
     config = function()
       local pd = require 'pd_nvim'
-      pd.setup()
-      pd.setup { pd_path = "~/src/pd/fgspd" }
+      if vim.fn.isdirectory(vim.fn.expand '~/src/pd/fgspd') == 1 then
+        pd.setup { pd_path = "~/src/pd/fgspd" }
+      else
+        pd.setup()
+      end
 
       local getpdpath = function()
         local arm64_path = "build/pd.arm64"
@@ -164,6 +167,7 @@ local lazySpecs = {
         -- get buffer at cursor
         vim.fn.system('killall -s SIGINT pd.x86_64')
         vim.fn.system('killall -s SIGINT pd.arm64')
+        pcall(function() vim.fn.system 'pkill -SIGINT -i pd.arm64' end)
         vim.fn.system('killall -s SIGINT pd.exe')
       end, { desc = '[D]ebug [P]ause' })
       -- debug step over
