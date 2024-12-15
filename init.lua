@@ -145,6 +145,8 @@ local lazySpecs = {
 
       local dap = require 'dap'
 
+      local known_pd_exes = { 'pd.x86_64', 'pd.arm64', 'pd.exe' }
+
 
       vim.keymap.set('n', '<leader>db', function() dap.toggle_breakpoint() end,
         { desc = '[D]ebug [B]reakpoint' })
@@ -158,20 +160,19 @@ local lazySpecs = {
         end,
         { desc = '[D]ebug Continue' })
       vim.keymap.set('n', '<leader>dT', function()
-          local function sigterm(process_name)
-            pcall(function()
-              vim.fn.system('killall -9 ' .. process_name)
-            end)
-            pcall(function() vim.fn.system('pkill -SIGTERM -i ' .. process_name) end)
-          end
+        local function sigterm(process_name)
           pcall(function()
-            dap.terminate()
+            vim.fn.system('killall -9 ' .. process_name)
           end)
-          sigterm('pd.x86_64')
-          sigterm('pd.arm64')
-          sigterm('pd.exe')
-        end,
-        { desc = '[D]ebug [T]erminate' })
+          pcall(function() vim.fn.system('pkill -SIGTERM -i ' .. process_name) end)
+        end
+        pcall(function()
+          dap.terminate()
+        end)
+        for _, exe in ipairs(known_pd_exes) do
+          sigterm(exe)
+        end
+      end, { desc = '[D]ebug [T]erminate' })
       -- debug
       vim.keymap.set('n', '<leader>dp', function()
         local function sigint(process_name)
@@ -181,9 +182,9 @@ local lazySpecs = {
           pcall(function() vim.fn.system('pkill -SIGINT -i ' .. process_name) end)
         end
 
-        sigint('pd.x86_64')
-        sigint('pd.arm64')
-        sigint('pd.exe')
+        for _, exe in ipairs(known_pd_exes) do
+          sigint(exe)
+        end
       end, { desc = '[D]ebug [P]ause' })
       -- debug step over
       vim.keymap.set('n', '<leader>ds', function() dap.step_over() end,
