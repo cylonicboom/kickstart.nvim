@@ -125,7 +125,7 @@ local lazySpecs = {
           -- C lang configurations
           c = {
             {
-              name = "Debug Perfect Dark (Friends of Joanna)",
+              name = "Debug Perfect Dark (Friends of Joanna, log to file)",
               type = "lldb",
               request = "launch",
               cwd = "${workspaceFolder}",
@@ -136,7 +136,7 @@ local lazySpecs = {
               stdio = { nil, 'build/pd.log', 'build/pd.error.log' },
             },
             {
-              name = "Debug Perfect Dark (PC Port)",
+              name = "Debug Perfect Dark (PC Port, log to stdout/stderr)",
               type = "lldb",
               request = "launch",
               cwd = "${workspaceFolder}",
