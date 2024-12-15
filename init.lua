@@ -70,6 +70,20 @@ local lazySpecs = {
   {
     'nanotee/zoxide.vim'
   },
+  -- {
+  --   'vidocqh/auto-indent.nvim',
+  --   config = function()
+  --     require('auto-indent').setup {
+  --       {
+  --         lightmode = false,
+  --         ignore_filetype = { 'markdown', 'vimwiki' },
+  --         indentexpr = function(lnum)
+  --           return require("nvim-treesitter.indent").get_indent(lnum)
+  --         end
+  --       }
+  --     }
+  --   end,
+  -- },
   -- super janky wip perfect dark modding plugin
 
   {
