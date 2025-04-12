@@ -127,7 +127,10 @@ local lazySpecs = {
               type = "lldb",
               request = "launch",
               cwd = "${workspaceFolder}",
-              program = getpdpath,
+              program = function()
+                vim.fn.system('rm -f build/pd.log build/pd.error.log')
+                return getpdpath()
+              end,
               args = {
                 '--basedir', vim.fn.expand '~/.local/share/perfectdark-friends-of-joanna/data',
                 '--savedir', vim.fn.expand '~/.local/share/perfectdark-friends-of-joanna/data' },
