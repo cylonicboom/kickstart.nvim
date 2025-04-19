@@ -104,7 +104,12 @@ local lazySpecs = {
     },
     config = function()
       local pd = require 'pd_nvim'
-      pd.setup { pd = { { pd_path = "~/src/pd/fgspd", rom_id = "ntsc-final" }, { pd_path = os.getenv("PD"), rom_id = "ntsc-final" } } }
+      pd.setup { pd =
+      {
+        { pd_path = "~/src/pd/fgspd",                rom_id = "ntsc-final" }, { pd_path = os.getenv("PD"), rom_id = "ntsc-final" },
+        { pd_path = "~/src/pd/perfect-dark-foj",     rom_id = "ntsc-final" },
+        { pd_path = "~/src/pd/perfect-dark-foj-n64", rom_id = "ntsc-final" }
+      } }
 
       local getpdpath = function()
         local arm64_path = "build/pd.arm64"
@@ -225,36 +230,6 @@ local lazySpecs = {
     end
     ,
     dev = true
-  },
-  -- kind of okay orgmode
-  -- maybe just install doom-emacs and do :!emacs -nw?
-  -- if I really needed that?
-  {
-    'nvim-orgmode/orgmode',
-    dependencies = {
-      { 'nvim-treesitter/nvim-treesitter', lazy = true },
-    },
-    event = 'VeryLazy',
-    config = function()
-      -- Load treesitter grammar for org
-      require('orgmode').setup_ts_grammar()
-
-      -- Setup treesitter
-      require('nvim-treesitter.configs').setup({
-        highlight = {
-          enable = true,
-          additional_vim_regex_highlighting = { 'org' },
-        },
-        ensure_installed = { 'org' },
-      })
-
-      -- Setup orgmode
-      require('orgmode').setup({
-        org_agenda_files = '~/orgfiles/**/*',
-        org_default_notes_file = '~/orgfiles/refile.org',
-        org_startup_folded = "inherit"
-      })
-    end,
   },
   -- folding that actually works
   {
