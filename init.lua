@@ -106,7 +106,12 @@ local lazySpecs = {
       local pd = require 'pd_nvim'
       pd.setup { pd =
       {
-        { pd_path = "~/src/pd/fgspd",                rom_id = "ntsc-final" }, { pd_path = os.getenv("PD"), rom_id = "ntsc-final" },
+        -- upstream pc port
+        { pd_path = "~/src/pd/fgspd",                rom_id = "ntsc-final" },
+        -- upstream n64 decomp
+        { pd_path = os.getenv("PD"),                 rom_id = "ntsc-final" },
+
+        -- WIP pc port mod: friends of joanna and setup changes
         { pd_path = "~/src/pd/perfect-dark-foj",     rom_id = "ntsc-final" },
         { pd_path = "~/src/pd/perfect-dark-foj-n64", rom_id = "ntsc-final" }
       } }
