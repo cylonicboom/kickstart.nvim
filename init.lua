@@ -196,7 +196,7 @@ local lazySpecs = {
   'tpope/vim-sleuth',
   -- NOTE: This is where your plugins related to LSP can be installed.
   --  The configuration is done below. Search for lspconfig to find it below.
-  { 'folke/neodev.nvim',    config = function() require 'neodev'.setup() end },
+  { 'folke/neodev.nvim',    config = true },
   {
     -- LSP Configuration & Plugins
     'neovim/nvim-lspconfig',
@@ -204,9 +204,6 @@ local lazySpecs = {
       -- Automatically install LSPs to stdpath for neovim
       { 'williamboman/mason.nvim', config = true },
       'williamboman/mason-lspconfig.nvim',
-
-      -- Useful status updates for LSP
-      -- NOTE: `opts = {}` is the same as calling `require('fidget').setup({})`
       { 'j-hui/fidget.nvim',       tag = 'legacy', opts = {} },
 
     },
@@ -229,7 +226,7 @@ local lazySpecs = {
   },
 
   -- Useful plugin to show you pending keybinds.
-  { 'folke/which-key.nvim', opts = {},                                       dependencies = { 'echasnovski/mini.nvim' } },
+  { 'folke/which-key.nvim', opts = {},    dependencies = { 'echasnovski/mini.nvim' } },
   {
     'xiyaowong/transparent.nvim',
     config = function()
@@ -782,23 +779,9 @@ local servers = {
 local capabilities = vim.lsp.protocol.make_client_capabilities()
 capabilities = require('cmp_nvim_lsp').default_capabilities(capabilities)
 
--- Ensure the servers above are installed
-local mason_lspconfig = require 'mason-lspconfig'
-
-mason_lspconfig.setup {
-  ensure_installed = vim.tbl_keys(servers),
-}
-
-mason_lspconfig.setup_handlers {
-  function(server_name)
-    require('lspconfig')[server_name].setup {
-      capabilities = capabilities,
-      on_attach = on_attach,
-      settings = servers[server_name],
-      filetypes = (servers[server_name] or {}).filetypes,
-    }
-  end
-}
+for server_name, _ in pairs(servers) do
+  vim.lsp.enable(server_name)
+end
 
 -- [[ Configure nvim-cmp ]]
 -- See `:help cmp`
