@@ -88,39 +88,37 @@ local lazySpecs = {
       "nvim-telescope/telescope-live-grep-args.nvim",
     },
     config = function()
-      local pd = require 'pd_nvim'
-      -- debugger config
-      local cfg = {
-        configurations = {
-          -- C lang configurations
-          c = {
-            {
-              name = "Debug Perfect Dark (Friends of Joanna, log to file)",
-              type = "lldb",
-              request = "launch",
-              cwd = "${workspaceFolder}",
-              program = function()
-                vim.fn.system('rm -f build/pd.log build/pd.error.log')
-                return pd.getpdpath()
-              end,
-              args = {
-                '--moddir', vim.fn.expand '~/src/pd/perfect-dark-foj-n64/build/ntsc-final/mod',
+      require 'pd_nvim'.setup {
+        -- debugger config
+        cfg = {
+          configurations = {
+            -- C lang configurations
+            c = {
+              {
+                name = "Debug Perfect Dark (Friends of Joanna, log to file)",
+                type = "lldb",
+                request = "launch",
+                cwd = "${workspaceFolder}",
+                program = function()
+                  vim.fn.system('rm -f build/pd.log build/pd.error.log')
+                  return require 'pd_nvim'.getpdpath()
+                end,
+                args = {
+                  '--moddir', vim.fn.expand '~/src/pd/perfect-dark-foj-n64/build/ntsc-final/mod',
+                },
+                stdio = { nil, 'build/pd.log', 'build/pd.error.log' },
               },
-              stdio = { nil, 'build/pd.log', 'build/pd.error.log' },
-            },
-            {
-              name = "Debug Perfect Dark (PC Port, log to stdout/stderr)",
-              type = "lldb",
-              request = "launch",
-              cwd = "${workspaceFolder}",
-              program = pd.getpdpath,
+              {
+                name = "Debug Perfect Dark (PC Port, log to stdout/stderr)",
+                type = "lldb",
+                request = "launch",
+                cwd = "${workspaceFolder}",
+                program = require 'pd_nvim'.getpdpath,
+              },
             },
           },
         },
-      }
-      pd.setup { cfg = cfg,
-        pd =
-        {
+        pd = {
           -- upstream pc port
           { pd_path = "~/src/pd/fgspd",                rom_id = "ntsc-final", },
           -- upstream n64 decomp
@@ -129,9 +127,10 @@ local lazySpecs = {
           -- WIP pc port mod: friends of joanna and setup changes
           { pd_path = "~/src/pd/perfect-dark-foj",     rom_id = "ntsc-final", },
           { pd_path = "~/src/pd/perfect-dark-foj-n64", rom_id = "ntsc-final", }
-        } }
-    end
-    ,
+        }
+
+      }
+    end,
     dev = true
   },
   -- folding that actually works
