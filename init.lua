@@ -68,66 +68,28 @@ local lazySpecs = {
   {
     'nanotee/zoxide.vim'
   },
-  -- {
-  --   'vidocqh/auto-indent.nvim',
-  --   config = function()
-  --     require('auto-indent').setup {
-  --       {
-  --         lightmode = false,
-  --         ignore_filetype = { 'markdown', 'vimwiki' },
-  --         indentexpr = function(lnum)
-  --           return require("nvim-treesitter.indent").get_indent(lnum)
-  --         end
-  --       }
-  --     }
-  --   end,
-  -- },
-  -- super janky wip perfect dark modding plugin
-
   {
-    'pd-nvim',
-    dependencies = {
+    'pd-nvim', -- TODO: needs meson + codelldb
+    dependencies =
+    {
+      -- set setup some which-key candy
       "folke/which-key.nvim",
-      -- debugger support
-      'mfussenegger/nvim-dap', "julianolf/nvim-dap-lldb", 'folke/neodev.nvim', "rcarriga/nvim-dap-ui",
-      "nvim-neotest/nvim-nio", "rcarriga/cmp-dap", "hrsh7th/nvim-cmp",
-      -- telescope candy
+      -- debugger candy via nvim-dap and friends
+      'mfussenegger/nvim-dap',
+      "julianolf/nvim-dap-lldb",
+      'folke/neodev.nvim',
+      "rcarriga/nvim-dap-ui",
+      "nvim-neotest/nvim-nio",
+      "rcarriga/cmp-dap",
+      "hrsh7th/nvim-cmp",
+
+      -- telescope candy for finding symbols
       'nvim-telescope/telescope.nvim',
-      {
-        "nvim-telescope/telescope-live-grep-args.nvim",
-        -- This will not install any breaking changes.
-        -- For major updates, this must be adjusted manually.
-        -- branch = "pd-nvim",
-        -- dev = true,
-        version = "^1.0.0",
-      },
+      "nvim-telescope/telescope-live-grep-args.nvim",
     },
     config = function()
       local pd = require 'pd_nvim'
-      pd.setup { pd =
-      {
-        -- upstream pc port
-        { pd_path = "~/src/pd/fgspd",                rom_id = "ntsc-final" },
-        -- upstream n64 decomp
-        { pd_path = os.getenv("PD"),                 rom_id = "ntsc-final" },
-
-        -- WIP pc port mod: friends of joanna and setup changes
-        { pd_path = "~/src/pd/perfect-dark-foj",     rom_id = "ntsc-final" },
-        { pd_path = "~/src/pd/perfect-dark-foj-n64", rom_id = "ntsc-final" }
-      } }
-
-      local getpdpath = function()
-        local arm64_path = "build/pd.arm64"
-        local x86_64_path = "build/pd.x86_64"
-        if vim.fn.filereadable(arm64_path) == 1 then
-          return arm64_path
-        elseif vim.fn.filereadable(x86_64_path) == 1 then
-          return x86_64_path
-        else
-          return nil
-        end
-      end
-
+      -- debugger config
       local cfg = {
         configurations = {
           -- C lang configurations
@@ -139,7 +101,7 @@ local lazySpecs = {
               cwd = "${workspaceFolder}",
               program = function()
                 vim.fn.system('rm -f build/pd.log build/pd.error.log')
-                return getpdpath()
+                return pd.getpdpath()
               end,
               args = {
                 '--moddir', vim.fn.expand '~/src/pd/perfect-dark-foj-n64/build/ntsc-final/mod',
@@ -151,87 +113,23 @@ local lazySpecs = {
               type = "lldb",
               request = "launch",
               cwd = "${workspaceFolder}",
-              program = getpdpath,
+              program = pd.getpdpath,
             },
           },
         },
       }
-      require("dap-lldb").setup(cfg)
+      pd.setup { cfg = cfg,
+        pd =
+        {
+          -- upstream pc port
+          { pd_path = "~/src/pd/fgspd",                rom_id = "ntsc-final", },
+          -- upstream n64 decomp
+          { pd_path = os.getenv("PD"),                 rom_id = "ntsc-final", },
 
-      -- HACK: maybe I should use verylazy
-      local dapui = nil
-
-      local ensure_dapui = function()
-        if dapui == nil then
-          dapui = require 'dapui'
-          dapui.setup()
-        end
-      end
-
-      local dap = require 'dap'
-
-      local known_pd_exes = { 'pd.x86_64', 'pd.arm64', 'pd.exe' }
-
-
-      vim.keymap.set('n', '<leader>db', function() dap.toggle_breakpoint() end,
-        { desc = '[D]ebug [B]reakpoint' })
-      vim.keymap.set('n', '<leader>do', function()
-          ensure_dapui()
-          if dapui then dapui.toggle() end
-        end,
-        { desc = '[D]ap UI' })
-      vim.keymap.set('n', '<leader>dc', function()
-          dap.continue()
-        end,
-        { desc = '[D]ebug Continue' })
-      vim.keymap.set('n', '<leader>dT', function()
-        local function sigterm(process_name)
-          pcall(function()
-            vim.fn.system('killall -9 ' .. process_name)
-          end)
-          pcall(function() vim.fn.system('pkill -SIGTERM -i ' .. process_name) end)
-        end
-        pcall(function()
-          dap.terminate()
-        end)
-        for _, exe in ipairs(known_pd_exes) do
-          sigterm(exe)
-        end
-      end, { desc = '[D]ebug [T]erminate' })
-      -- debug
-      vim.keymap.set('n', '<leader>dp', function()
-        local function sigint(process_name)
-          pcall(function()
-            vim.fn.system('killall -s SIGINT ' .. process_name)
-          end)
-          pcall(function() vim.fn.system('pkill -SIGINT -i ' .. process_name) end)
-        end
-
-        for _, exe in ipairs(known_pd_exes) do
-          sigint(exe)
-        end
-      end, { desc = '[D]ebug [P]ause' })
-      -- debug step over
-      vim.keymap.set('n', '<leader>ds', function() dap.step_over() end,
-        { desc = '[D]ebug [S]tep Over' })
-      -- debug step into
-      vim.keymap.set('n', '<leader>di', function() dap.step_into() end,
-        { desc = '[D]ebug [I]nto' })
-      -- debug step out (gdb finish)
-      vim.keymap.set('n', '<leader>df', function() dap.step_out() end,
-        { desc = '[D]ebug [F]out' })
-      -- debug up
-      vim.keymap.set('n', '<leader>du', function() dap.up() end,
-        { desc = '[D]ebug [U]p' })
-      -- debug down
-      vim.keymap.set('n', '<leader>dd', function() dap.down() end,
-        { desc = '[D]ebug [D]own' })
-      -- debug run to cursor
-      vim.keymap.set('n', '<leader>dr', function() dap.run_to_cursor() end,
-        { desc = '[D]ebug [R]un to cursor' })
-      require 'which-key'.add {
-        { "<leader>d", icon = "🔭🦝", group = "debug" },
-      }
+          -- WIP pc port mod: friends of joanna and setup changes
+          { pd_path = "~/src/pd/perfect-dark-foj",     rom_id = "ntsc-final", },
+          { pd_path = "~/src/pd/perfect-dark-foj-n64", rom_id = "ntsc-final", }
+        } }
     end
     ,
     dev = true
@@ -365,8 +263,10 @@ local lazySpecs = {
       on_attach = function(bufnr)
         vim.keymap.set('n', '<leader>gp', require('gitsigns').prev_hunk,
           { buffer = bufnr, desc = '[G]o to [P]revious Hunk' })
-        vim.keymap.set('n', '<leader>gn', require('gitsigns').next_hunk, { buffer = bufnr, desc = '[G]o to [N]ext Hunk' })
-        vim.keymap.set('n', '<leader>ph', require('gitsigns').preview_hunk, { buffer = bufnr, desc = '[P]review [H]unk' })
+        vim.keymap.set('n', '<leader>gn', require('gitsigns').next_hunk,
+          { buffer = bufnr, desc = '[G]o to [N]ext Hunk' })
+        vim.keymap.set('n', '<leader>ph', require('gitsigns').preview_hunk,
+          { buffer = bufnr, desc = '[P]review [H]unk' })
       end,
     },
   },
