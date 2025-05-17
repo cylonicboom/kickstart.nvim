@@ -312,6 +312,7 @@ local lazySpecs = {
         config = function()
             require 'alpha'.setup(require 'alpha.themes.startify'.config)
             vim.keymap.set("n", "<leader><BS>", "<cmd>Alpha<cr>")
+            vim.keymap.set("n", "<leader><C-a>", "<cmd>Alpha<cr>", { desc = "Alpha" })
         end
     },
     {
@@ -799,31 +800,41 @@ cmp.setup {
 
 vim.opt.tabstop = 4
 
+-- some stuff I use a lot from doom emacs
 vim.keymap.set("n", "<leader>fs", ":w<cr>", { desc = "[F]ile [S]ave" })
 vim.keymap.set("n", "<leader>w", "<C-w>")
-vim.keymap.set("i", "jk", "<esc><esc>")
 
 vim.keymap.set("n", "<leader>oT", "<cmd>term<cr>", { desc = "Open Terminal in place" })
 vim.keymap.set("n", "<leader>ot", "<cmd>term<cr>", { desc = "Open Terminal in place" })
 
+-- session quick-save
 vim.keymap.set("n", "<leader>Ss", "<cmd>mksession! ~/session.nvim<cr>", { desc = "Save Session" })
 vim.keymap.set("n", "<leader>Sl", "<cmd>source ~/session.nvim<cr>", { desc = "Load Session" })
 
+-- tab management
 vim.keymap.set("n", "<leader>th", "gT", { desc = "previous tab" })
 vim.keymap.set("n", "<leader>tl", "gt", { desc = "next tab" })
 vim.keymap.set("n", "<leader>tq", "<cmd>tabclose<cr>", { desc = "close tab" })
 vim.keymap.set("n", "<leader>tn", "<cmd>tabnew<cr>", { desc = "new tab" })
+
+-- escaping shortcut
 vim.keymap.set("t", "jk", "<C-\\><C-n>")
+vim.keymap.set("i", "jk", "<esc><esc>")
+
+-- indent and unindent DX
 vim.cmd("xnoremap < <gv")
 vim.cmd("xnoremap > >gv")
+
+-- navigate in-place
+vim.keymap.set("n", "<leader>E", "<cmd>Explore<cr>", { desc = "Explore" })
 vim.keymap.set("n", "vse", "<cmd>vs|Explore|vertical resize 60<cr>", { desc = "Explore vertically" })
 vim.keymap.set("n", "se", "<cmd>sp|Explore|resize 20<cr>", { desc = "Explore horizontally" })
-vim.keymap.set('n', "qq", "<cmd>q<cr>")
-vim.keymap.set("n", "<leader>E", "<cmd>Explore<cr>", { desc = "Explore" })
-vim.keymap.set("n", "<leader>sj", "<cmd>Telescope jumplist<cr>", { desc = "Telescope jumplist" })
-vim.keymap.set("n", "<leader>QQQ", "<cmd>qa!<cr>", { desc = "Quit immediately" })
-vim.keymap.set("n", "<leader><C-a>", "<cmd>Alpha<cr>", { desc = "Alpha" })
 
+-- quit shortcuts
+vim.keymap.set('n', "qq", "<cmd>q<cr>")
+vim.keymap.set("n", "<leader>QQQ", "<cmd>qa!<cr>", { desc = "Quit immediately" })
+
+vim.keymap.set("n", "<leader>sj", "<cmd>Telescope jumplist<cr>", { desc = "Telescope jumplist" })
 vim.cmd("autocmd FileType fugitive nmap <buffer> za =")
 
 
