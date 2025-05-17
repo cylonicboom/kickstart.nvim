@@ -73,7 +73,8 @@ local lazySpecs = {
     {
         'pd-nvim', -- TODO: needs meson + codelldb
         config = function()
-            require 'pd_nvim'.setup {
+            local pd_nvim = require 'pd_nvim'
+            pd_nvim.setup {
                 -- debugger config
                 cfg = {
                     configurations = {
@@ -115,6 +116,28 @@ local lazySpecs = {
                 }
 
             }
+            -- setup lookup table for pd_nvim.options.cfg.configuations.c for looking up configs by name
+            setmetatable(pd_nvim.options.cfg.configurations.c, {
+                __index = function(t, k)
+                    for _, v in ipairs(t) do
+                        if v.name == k then
+                            return v
+                        end
+                    end
+                    return nil
+                end,
+            })
+
+            -- my shortcuts to start debugging my pd targets
+            --
+            -- set <leader>dCf to cold-start friends of joanna debug
+            vim.keymap.set('n', '<leader>dCf', function()
+                require 'dap'.run(pd_nvim.options.cfg.configurations.c[1])
+            end, { desc = "Debug Friends of Joanna" })
+            -- and <leader>dCp to cold-start the pc port
+            vim.keymap.set('n', '<leader>dCp', function()
+                require 'dap'.run(pd_nvim.options.cfg.configurations.c[2])
+            end, { desc = "Debug Perfect Dark PC" })
         end,
         dev = true
     },
