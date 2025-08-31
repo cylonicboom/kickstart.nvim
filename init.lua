@@ -105,9 +105,10 @@ local lazySpecs = {
                   return require 'pd_nvim'.getpdpath()
                 end,
                 args = {
-                  '--moddir', vim.fn.expand '~/Library/Application\\ Support/perfectdark-friends-of-joanna/mods',
-                  '--savedir', vim.fn.expand '~/Library/Application\\ Support/perfectdark-friends-of-joanna',
-                  '--basedir', vim.fn.expand '~/Library/Application\\ Support/perfectdark-friends-of-joanna',
+                  '--moddir', vim.fn.expand(os.getenv("PD_MODDIR")),
+                  '--savedir', vim.fn.expand(os.getenv("PD_SAVEDIR")),
+                  '--basedir', vim.fn.expand(os.getenv("PD_BASEDIR")),
+                  '--rom-file', vim.fn.expand(os.getenv("PD_ROMFILE")),
                 },
                 stdio = { nil, 'build/pd.log', 'build/pd.error.log' },
               },
