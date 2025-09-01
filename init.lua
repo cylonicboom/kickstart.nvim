@@ -108,7 +108,7 @@ local lazySpecs = {
                         c = {
                             {
                                 name = "Debug Perfect Dark (Friends of Joanna, log to file)",
-                                type = "cppdbg",
+                                type = config_type,
                                 request = "launch",
                                 cwd = "${workspaceFolder}",
                                 program = function()
