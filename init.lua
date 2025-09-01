@@ -89,6 +89,17 @@ local lazySpecs = {
         --   'mfussenegger/nvim-dap'
         -- },
         config = function()
+            local dap = require 'dap'
+            dap.adapters.cppdbg = {
+                id = 'cppdbg',
+                type = 'executable',
+                command = vim.fn.expand("~/.local/share/nvim/mason/bin/OpenDebugAD7"),
+            }
+            -- if mac, use lldb, otherwise use cppdbg
+            local config_type = "cppdbg"
+            if vim.fn.has("mac") == 1 then
+                config_type = "lldb"
+            end
             require 'pd_nvim'.setup {
                 -- debugger config
                 cfg = {
