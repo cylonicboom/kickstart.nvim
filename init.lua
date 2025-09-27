@@ -128,9 +128,9 @@ local lazySpecs = {
                 end,
             })
 
-            -- add PDReload command
+            -- PDReload command
             --
-            vim.api.nvim_create_user_command("PDReload", function()
+            vim.api.nvim_create_user_command("PdReload", function()
                 print("Reloading pd_nvim config...")
                 reload_pd_nvim()
             end, {})
