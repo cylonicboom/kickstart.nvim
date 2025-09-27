@@ -100,51 +100,41 @@ local lazySpecs = {
             if vim.fn.has("mac") == 1 then
                 config_type = "lldb"
             end
-            require 'pd_nvim'.setup {
-                -- debugger config
-                cfg = {
-                    configurations = {
-                        -- C lang configurations
-                        c = {
-                            {
-                                name = "Debug Perfect Dark (Friends of Joanna, log to file)",
-                                type = config_type,
-                                request = "launch",
-                                cwd = "${workspaceFolder}",
-                                program = function()
-                                    vim.fn.system('rm -f build/pd.log build/pd.error.log')
-                                    return require 'pd_nvim'.getpdpath()
-                                end,
-                                args = {
-                                    '--moddir', vim.fn.expand(os.getenv("PD_MODDIR")),
-                                    '--savedir', vim.fn.expand(os.getenv("PD_SAVEDIR")),
-                                    '--basedir', vim.fn.expand(os.getenv("PD_BASEDIR")),
-                                    '--rom-file', vim.fn.expand(os.getenv("PD_ROMFILE")),
-                                },
-                                stdio = { nil, 'build/pd.log', 'build/pd.error.log' },
-                            },
-                            {
-                                name = "Debug Perfect Dark (PC Port, log to stdout/stderr)",
-                                type = "lldb",
-                                request = "launch",
-                                cwd = "${workspaceFolder}",
-                                program = require 'pd_nvim'.getpdpath,
-                            },
-                        },
-                    },
-                },
-                pd = {
-                    -- upstream pc port
-                    { pd_path = "~/src/pd/fgspd",                rom_id = "ntsc-final", },
-                    -- upstream n64 decomp
-                    { pd_path = os.getenv("PD"),                 rom_id = "ntsc-final", },
+            local function reload_pd_nvim()
+              -- debugger config
+              -- detect .pdproj file from current project
+              -- detect .pdproj file from current project
+              local pdproj_path = vim.fn.findfile('.pdproj', vim.fn.getcwd() .. ';')
+              if pdproj_path ~= '' then
+                  pdproj_path = vim.fn.fnamemodify(pdproj_path, ':p')
+                  print(".pdproj file detected at: " .. pdproj_path)
+              else
+                  -- try to get it from env:PD_PROJ
+                  pdproj_path = os.getenv("PD_PROJ") or ''
+              end
 
-                    -- WIP pc port mod: friends of joanna and setup changes
-                    { pd_path = "~/src/pd/perfect-dark-foj",     rom_id = "ntsc-final", },
-                    { pd_path = "~/src/pd/perfect-dark-foj-n64", rom_id = "ntsc-final", }
-                }
+              -- require pdproj_path as lua file
+              --
+              local pdsetup = loadfile(pdproj_path) or {}
+              -- print(pdsetup.cfg)
+              require 'pd_nvim'.setup(pdsetup)
+            end
+            -- add autocmd to reload pd_nvim on .pdproj save
+            vim.api.nvim_create_autocmd("BufWritePost", {
+                pattern = ".pdproj",
+                callback = function()
+                    print(".pdproj file saved, reloading pd_nvim config...")
+                    reload_pd_nvim()
+                end,
+            })
 
-            }
+            -- add PDReload command
+            --
+            vim.api.nvim_create_user_command("PDReload", function()
+                print("Reloading pd_nvim config...")
+                reload_pd_nvim()
+            end, {})
+            reload_pd_nvim()
         end,
         dev = true
     },
