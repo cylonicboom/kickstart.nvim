@@ -115,8 +115,8 @@ local lazySpecs = {
 
               -- require pdproj_path as lua file
               --
-              local pdsetup = loadfile(pdproj_path) or {}
-              -- print(pdsetup.cfg)
+              local pdsetup_fn = loadfile(pdproj_path)
+              local pdsetup = pdsetup_fn and pdsetup_fn() or {}
               require 'pd_nvim'.setup(pdsetup)
             end
             -- add autocmd to reload pd_nvim on .pdproj save
