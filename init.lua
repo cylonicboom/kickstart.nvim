@@ -822,6 +822,7 @@ vim.keymap.set("n", "<leader>QQQ", "<cmd>qa!<cr>", { desc = "Quit immediately" }
 vim.keymap.set("n", "<leader><C-a>", "<cmd>Alpha<cr>", { desc = "Alpha" })
 
 vim.cmd("autocmd FileType fugitive nmap <buffer> za =")
+vim.cmd("Copilot disable")
 
 
 -- The line beneath this is called `modeline`. See `:help modeline`
