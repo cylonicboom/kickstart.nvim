@@ -445,7 +445,12 @@ local lazySpecs = {
         'nvim-treesitter/nvim-treesitter',
         dependencies = {
             'nvim-treesitter/nvim-treesitter-textobjects',
-            'nvim-treesitter/nvim-treesitter-context'
+            {
+                'nvim-treesitter/nvim-treesitter-context',
+                cond = function()
+                    return vim.g.vscode == nil
+                end,
+            },
         },
         build = ':TSUpdate',
         config = function()
