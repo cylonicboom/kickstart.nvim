@@ -72,22 +72,22 @@ local lazySpecs = {
     },
     {
         'pd-nvim', -- TODO: needs meson + codelldb
-        -- dependencies = {
-        --   "folke/which-key.nvim",
-        --   "nvim-neotest/nvim-nio" ,
-        --   'nvim-telescope/telescope.nvim',
-        --   'rcarriga/nvim-dap-ui',
-        --   {
-        --     "nvim-telescope/telescope-live-grep-args.nvim",
-        --     -- This will not install any breaking changes.
-        --     -- For major updates, this must be adjusted manually.
-        --     -- branch = "pd-nvim",
-        --     -- dev = true,
-        --     version = "^1.0.0",
-        --   },
-        --   'julianolf/nvim-dap-lldb',
-        --   'mfussenegger/nvim-dap'
-        -- },
+        dependencies = {
+          "folke/which-key.nvim",
+          "nvim-neotest/nvim-nio" ,
+          'nvim-telescope/telescope.nvim',
+          'rcarriga/nvim-dap-ui',
+          {
+            "nvim-telescope/telescope-live-grep-args.nvim",
+            -- This will not install any breaking changes.
+            -- For major updates, this must be adjusted manually.
+            -- branch = "pd-nvim",
+            -- dev = true,
+            -- version = "^1.0.0",
+          },
+          'julianolf/nvim-dap-lldb',
+          'mfussenegger/nvim-dap'
+        },
         config = function()
             local dap = require 'dap'
             dap.adapters.cppdbg = {
@@ -441,152 +441,85 @@ local lazySpecs = {
     },
 
     {
-        -- Highlight, edit, and navigate code
-        'nvim-treesitter/nvim-treesitter',
-        dependencies = {
-            'nvim-treesitter/nvim-treesitter-textobjects',
-            {
-                'nvim-treesitter/nvim-treesitter-context',
-                cond = function()
-                    return vim.g.vscode == nil
-                end,
-            },
-        },
-        build = ':TSUpdate',
-        config = function()
-            -- vim.cmd('TSContextEnable')
-            -- [[ Configure Treesitter ]]
-            -- See `:help nvim-treesitter`
-            require('nvim-treesitter.configs').setup {
-                -- Add languages to be installed here that you want installed for treesitter
-                ensure_installed = { 'c', 'cpp', 'go', 'lua', 'python', 'rust', 'tsx', 'typescript', 'vimdoc', 'vim' },
+  -- Highlight, edit, and navigate code
+  'nvim-treesitter/nvim-treesitter',
+  build = ':TSUpdate',
+  lazy = false,
+  dependencies = {
+    'nvim-treesitter/nvim-treesitter-textobjects'
+  },
+  config = function()
+  require('nvim-treesitter.install').compilers = { 'clang', 'gcc' }
 
-                -- Autoinstall languages that are not installed. Defaults to false (but you can change for yourself!)
-                auto_install = false,
+    local parsers = {
+      'bash',
+      'c',
+      'cpp',
+      'diff',
+      'go',
+      'html',
+      'lua',
+      'luadoc',
+      'markdown',
+      'markdown_inline',
+      'python',
+      'query',
+      'rust',
+      'tsx',
+      'typescript',
+      'vim',
+      'vimdoc',
+    }
 
-                highlight = { enable = true },
-                indent = { enable = false },
-                incremental_selection = {
-                    enable = true,
-                    keymaps = {
-                        init_selection = '<c-space>',
-                        node_incremental = '<c-space>',
-                        scope_incremental = '<c-s>',
-                        node_decremental = '<M-space>',
-                    },
-                },
-                textobjects = {
-                    select = {
-                        enable = true,
-                        lookahead = true, -- Automatically jump forward to textobj, similar to targets.vim
-                        keymaps = {
-                            -- You can use the capture groups defined in textobjects.scm
-                            ['aa'] = '@parameter.outer',
-                            ['ia'] = '@parameter.inner',
-                            ['af'] = '@function.outer',
-                            ['if'] = '@function.inner',
-                            ['ac'] = '@class.outer',
-                            ['ic'] = '@class.inner',
-                        },
-                    },
-                    move = {
-                        enable = true,
-                        set_jumps = true, -- whether to set jumps in the jumplist
-                        goto_next_start = {
-                            [']m'] = '@function.outer',
-                            [']]'] = '@class.outer',
-                        },
-                        goto_next_end = {
-                            [']M'] = '@function.outer',
-                            [']['] = '@class.outer',
-                        },
-                        goto_previous_start = {
-                            ['[m'] = '@function.outer',
-                            ['[['] = '@class.outer',
-                        },
-                        goto_previous_end = {
-                            ['[M'] = '@function.outer',
-                            ['[]'] = '@class.outer',
-                        },
-                    },
-                    swap = {
-                        enable = true,
-                        swap_next = {
-                            ['<leader>a'] = '@parameter.inner',
-                        },
-                        swap_previous = {
-                            ['<leader>A'] = '@parameter.inner',
-                        },
-                    },
-                },
-            }
-        end
-    },
+    local to_install = {}
+    for _, lang in ipairs(parsers) do
+      -- Native Neovim check: returns true if the .so/.dylib grammar exists
+      local installed = pcall(vim.treesitter.get_string_parser, '', lang)
+      if not installed then
+        table.insert(to_install, lang)
+      end
+    end
+
+    if #to_install > 0 then
+      vim.cmd('TSInstall ' .. table.concat(to_install, ' '))
+    end
+
+    vim.api.nvim_create_autocmd({ 'FileType', 'BufReadPost' }, {
+      group = vim.api.nvim_create_augroup('TreesitterAutoStart', { clear = true }),
+      callback = function(ev)
+      -- Skip special non-file buffers (terminals, quickfix, help windows, etc.)
+      local buftype = vim.bo[ev.buf].buftype
+      if buftype ~= '' then
+        return
+      end
+
+      -- Attempt to start treesitter highlighting safely
+      pcall(vim.treesitter.start, ev.buf)
+  end,
+})
+
+  end,
+},
+
+{
+  -- Show context of current function/class at the top of the buffer
+  'nvim-treesitter/nvim-treesitter-context',
+  event = 'BufReadPost',
+  cond = function()
+    return vim.g.vscode == nil
+  end,
+  opts = {
+    enable = true,
+    max_lines = 3,
+  },
+},
+
 
     -- NOTE: Next Step on Your Neovim Journey: Add/Configure additional "plugins" for kickstart
     --       These are some example plugins that I've included in the kickstart repository.
     --       Uncomment any of the lines below to enable them.
     require 'kickstart.plugins.autoformat',
     -- require 'kickstart.plugins.debug',
-    {
-        "CopilotC-Nvim/CopilotChat.nvim",
-        branch = "main",
-        config = true,
-        dependencies = {
-            {
-                "zbirenbaum/copilot.lua",
-                cmd = "Copilot",
-                event = "InsertEnter",
-                config = function()
-                    require("copilot").setup(
-                        {
-                            panel = {
-                                enabled = true,
-                                auto_refresh = false,
-                                keymap = {
-                                    jump_prev = "[[",
-                                    jump_next = "]]",
-                                    accept = "<CR>",
-                                    refresh = "gr",
-                                    open = "<M-CR>"
-                                },
-                                layout = {
-                                    position = "bottom", -- | top | left | right
-                                    ratio = 0.4
-                                },
-                            },
-                            suggestion = {
-                                enabled = true,
-                                auto_trigger = true,
-                                debounce = 75,
-                                keymap = {
-                                    accept = "<M-l>",
-                                    accept_word = false,
-                                    accept_line = false,
-                                    next = "<M-]>",
-                                    prev = "<M-[>",
-                                    dismiss = "<C-]>",
-                                },
-                            },
-                            filetypes = {
-                                yaml = false,
-                                markdown = false,
-                                help = false,
-                                gitcommit = false,
-                                gitrebase = false,
-                                hgcommit = false,
-                                svn = false,
-                                cvs = false,
-                                ["."] = false,
-                            },
-                            copilot_node_command = 'node', -- Node.js version must be > 16.x
-                            server_opts_overrides = {},
-                        }
-                    )
-                end,
-            }
-        }
-    }
 }
 
 require 'lazy'.setup(lazySpecs, {
@@ -595,48 +528,6 @@ require 'lazy'.setup(lazySpecs, {
         package = { "pd-nvim" }
     }
 })
--- [[ Setting options ]]
--- See `:help vim.o`
--- NOTE: You can change these options as you wish!
-
--- Set highlight on search
-vim.o.hlsearch = false
-
--- Make line numbers default
-vim.wo.number = true
-
--- Enable mouse mode
-vim.o.mouse = 'a'
-
--- Sync clipboard between OS and Neovim.
---  Remove this option if you want your OS clipboard to remain independent.
---  See `:help 'clipboard'`
-vim.o.clipboard = 'unnamedplus'
-
--- Enable break indent
-vim.o.breakindent = true
-
--- Save undo history
-vim.o.undofile = true
-
--- Case-insensitive searching UNLESS \C or capital in search
-vim.o.ignorecase = true
-vim.o.smartcase = true
-
--- Keep signcolumn on by default
-vim.wo.signcolumn = 'yes'
-
-vim.g.netrw_keepdir = 0
-
--- Decrease update time
-vim.o.updatetime = 250
-vim.o.timeoutlen = 300
-
--- Set completeopt to have a better completion experience
-vim.o.completeopt = 'menuone,noselect'
-
--- NOTE: You should make sure your terminal supports this
-vim.o.termguicolors = true
 
 -- [[ Basic Keymaps ]]
 
@@ -659,54 +550,9 @@ vim.api.nvim_create_autocmd('TextYankPost', {
     pattern = '*',
 })
 
--- [[ Configure Telescope ]]
--- See `:help telescope` and `:help telescope.setup()`
-require('telescope').setup {
-    defaults = {
-        mappings = {
-            i = {
-                ['<C-u>'] = false,
-                ['<C-d>'] = false,
-            },
-        },
-    },
-}
-
--- Enable telescope fzf native, if installed
-pcall(require('telescope').load_extension, 'fzf')
-
-vim.cmd([[
-    silent !~/.config/nvim/sh/mk-vimprojects.sh
-
-]])
-require('telescope').load_extension('projects')
 
 
 
--- See `:help telescope.builtin`
-vim.keymap.set('n', '<leader>?', require('telescope.builtin').oldfiles, { desc = '[?] Find recently opened files' })
-vim.keymap.set('n', '<leader><space>', require('telescope.builtin').buffers, { desc = '[ ] Find existing buffers' })
-vim.keymap.set('n', '<leader>/', function()
-    -- You can pass additional configuration to telescope to change theme, layout, etc.
-    require('telescope.builtin').current_buffer_fuzzy_find(require('telescope.themes').get_dropdown {
-        winblend = 10,
-        previewer = false,
-    })
-end, { desc = '[/] Fuzzily search in current buffer' })
-
-vim.keymap.set('n', '<leader>\'', require('telescope.builtin').resume, { desc = 'Resume last telescope' })
-vim.keymap.set('n', '<leader>gf', require('telescope.builtin').git_files, { desc = 'Search [G]it [F]iles' })
-vim.keymap.set('n', '<leader>gd', require('telescope.builtin').git_status, { desc = 'Search [G]it [S]tatus' })
-vim.keymap.set('n', '<leader>sf', require('telescope.builtin').find_files, { desc = '[S]earch [F]iles' })
-vim.keymap.set('n', '<leader>sh', require('telescope.builtin').help_tags, { desc = '[S]earch [H]elp' })
-vim.keymap.set('n', '<leader>sw', require('telescope.builtin').grep_string, { desc = '[S]earch current [W]ord' })
-vim.keymap.set('n', '<leader>sb', require('telescope.builtin').buffers, { desc = '[S]earch [B]uffers' })
-vim.keymap.set('n', '<leader>bb', require('telescope.builtin').buffers, { desc = '[B]eautiful [B]uffers' })
-vim.keymap.set('n', '<leader>sg', require('telescope.builtin').live_grep, { desc = '[S]earch by [G]rep' })
-vim.keymap.set('n', '<leader>ss', require('telescope.builtin').pickers, { desc = '[S]earch by [S]earches' })
-vim.keymap.set('n', '<leader>sd', require('telescope.builtin').diagnostics, { desc = '[S]earch [D]iagnostics' })
-vim.api.nvim_set_keymap('n', '<leader>s*',
-    '<cmd>lua require(\'telescope.builtin\').grep_string({search = vim.fn.expand("<cword>")})<cr>', {})
 
 
 -- Diagnostic keymaps
@@ -791,7 +637,6 @@ cmp.setup {
         end, { 'i', 's' }),
     },
     sources = {
-        { name = "copilot" },
         { name = 'nvim_lsp' },
         { name = 'luasnip' },
         { name = "dap" }
@@ -799,36 +644,14 @@ cmp.setup {
 }
 
 
-vim.opt.tabstop = 4
 
-vim.keymap.set("n", "<leader>fs", ":w<cr>", { desc = "[F]ile [S]ave" })
-vim.keymap.set("n", "<leader>w", "<C-w>")
-vim.keymap.set("i", "jk", "<esc><esc>")
-
-vim.keymap.set("n", "<leader>oT", "<cmd>term<cr>", { desc = "Open Terminal in place" })
-vim.keymap.set("n", "<leader>ot", "<cmd>term<cr>", { desc = "Open Terminal in place" })
-
-vim.keymap.set("n", "<leader>Ss", "<cmd>mksession! ~/session.nvim<cr>", { desc = "Save Session" })
-vim.keymap.set("n", "<leader>Sl", "<cmd>source ~/session.nvim<cr>", { desc = "Load Session" })
-
-vim.keymap.set("n", "<leader>th", "gT", { desc = "previous tab" })
-vim.keymap.set("n", "<leader>tl", "gt", { desc = "next tab" })
-vim.keymap.set("n", "<leader>tq", "<cmd>tabclose<cr>", { desc = "close tab" })
-vim.keymap.set("n", "<leader>tn", "<cmd>tabnew<cr>", { desc = "new tab" })
-vim.keymap.set("t", "jk", "<C-\\><C-n>")
-vim.cmd("xnoremap < <gv")
-vim.cmd("xnoremap > >gv")
-vim.keymap.set("n", "vse", "<cmd>vs|Explore|vertical resize 60<cr>", { desc = "Explore vertically" })
-vim.keymap.set("n", "se", "<cmd>sp|Explore|resize 20<cr>", { desc = "Explore horizontally" })
-vim.keymap.set('n', "qq", "<cmd>q<cr>")
-vim.keymap.set("n", "<leader>E", "<cmd>Explore<cr>", { desc = "Explore" })
-vim.keymap.set("n", "<leader>sj", "<cmd>Telescope jumplist<cr>", { desc = "Telescope jumplist" })
-vim.keymap.set("n", "<leader>QQQ", "<cmd>qa!<cr>", { desc = "Quit immediately" })
-vim.keymap.set("n", "<leader><C-a>", "<cmd>Alpha<cr>", { desc = "Alpha" })
 
 vim.cmd("autocmd FileType fugitive nmap <buffer> za =")
-vim.cmd("Copilot disable")
 
+local termreg = require("termreg")
+require("keymaps")
+require("opts")
+require("config.telescope")
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
